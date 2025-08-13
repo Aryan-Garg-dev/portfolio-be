@@ -25,7 +25,8 @@
 			"recommended": true,
 			"complexity": {
 				"recommended": true,
-				"noUselessTernary": "warn"
+				"noUselessTernary": "warn",
+				"noBannedTypes": "off"
 			},
 			"performance": {
 				"noBarrelFile": "error",
