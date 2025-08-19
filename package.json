@@ -11,7 +11,8 @@
 		"format": "biome format --write",
 		"check": "biome check --write",
 		"prepare": "husky",
-		"db:seed": "bun run src/db/seeders/index.ts"
+		"db:seed": "bun run src/scripts/db/seed.script.ts",
+		"db:sync": "bun run src/scripts/db/sync.script.ts"
 	},
 	"lint-staged": {
 		"*.{js,ts,jsx,tsx,json}": ["biome check --write"]
@@ -36,7 +37,6 @@
 		"connect-redis": "^9.0.0",
 		"cors": "^2.8.5",
 		"express": "^5.1.0",
-		"express-async-errors": "^3.1.1",
 		"express-rate-limit": "^8.0.1",
 		"express-session": "^1.18.2",
 		"fast-json-stable-stringify": "^2.1.0",

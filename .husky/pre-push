@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Exit on any error
+set -e
+
+echo "🔍 Checking for model file changes..."
+
+# Check if any .model.ts file was changed in the last commit
+if git diff --name-only HEAD~1 HEAD | grep -qE '\.model\.ts$'; then
+  echo "🔄 Model file changed. Running db:sync..."
+  if bun run db:sync; then
+    echo "✅ db:sync completed successfully"
+  else
+    echo "❌ db:sync failed"
+    exit 1
+  fi
+else
+  echo "✅ No model file changes. Skipping db:sync."
+fi
+
+echo "🚀 Pre-push checks completed"

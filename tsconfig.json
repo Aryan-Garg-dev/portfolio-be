@@ -22,6 +22,8 @@
 		"noUnusedParameters": false,
 		"noPropertyAccessFromIndexSignature": false,
 
+		"experimentalDecorators": true,
+
 		"types": ["express", "bun-types"],
 		"baseUrl": ".",
 		"paths": {

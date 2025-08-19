@@ -1,17 +1,17 @@
 import type { Response } from "express";
 
-type TBaseResponse<T> = {
+type TBaseResponse = {
 	success: boolean;
 	status: number;
 	message?: string;
 };
 
-type TSuccessResponse<T> = TBaseResponse<T> & {
+type TSuccessResponse<T> = TBaseResponse & {
 	success: true;
 	data?: T;
 };
 
-type TErrorResponse = TBaseResponse<null> & {
+type TErrorResponse = TBaseResponse & {
 	success: false;
 	error: string;
 	code?: string;
@@ -40,7 +40,6 @@ export function sendResponse<T>(res: Response, response: TResponse<T>) {
 	if (success) {
 		const base = {
 			success: true,
-			status,
 			message,
 			data: response.data,
 		};
@@ -59,7 +58,6 @@ export function sendResponse<T>(res: Response, response: TResponse<T>) {
 		success: false,
 		error: response.error,
 		code: response.code,
-		status: response.status,
 	});
 }
 

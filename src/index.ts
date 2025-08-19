@@ -3,11 +3,11 @@ import express from "express";
 import setupServer from "@/lib/setup/server.ts";
 import setupLogger from "@/lib/setup/logger.ts";
 import setupSession from "@/lib/setup/session.ts";
+import connectDB from "@/lib/setup/db.ts";
 import logger from "@/lib/logger";
 import env from "@/config/env.ts";
 import { corsConfig } from "@/config/cors.ts";
 import cache from "@/lib/cache";
-import connectDB from "@/db";
 import { appRouter } from "@/routes";
 
 async function startServer() {

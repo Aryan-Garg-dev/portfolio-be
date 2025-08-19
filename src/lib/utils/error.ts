@@ -1,24 +1,24 @@
 import { ZodError } from "zod";
+import type { NextFunction, Request, RequestHandler, Response } from "express";
+import type { TRequestHandler } from "@/common/types/http.ts";
 
 export class AppError extends Error {
 	public status: number;
 	public code: string;
-	public isOperational: boolean;
 
-	constructor(status: number, code: string, message: string, isOperational = true) {
+	constructor(status: number, code: string, message: string) {
 		super(message);
 		Object.setPrototypeOf(this, new.target.prototype);
 		this.status = status;
 		this.code = code;
-		this.isOperational = isOperational;
 		this.name = this.constructor.name;
 		Error.captureStackTrace(this);
 	}
 
-	static from(error: unknown, status = 500, code = "INTERNAL_ERROR"): AppError {
+	static from(error: unknown, msg?: string, status = 500, code = "INTERNAL_ERROR"): AppError {
 		if (error instanceof AppError) return error;
-		const message = getErrorMessage(error);
-		const appError = new AppError(status, code, message, false);
+		const message = msg ?? getErrorMessage(error);
+		const appError = new AppError(status, code, message);
 		if (error instanceof Error) appError.stack = error.stack;
 		return appError;
 	}
@@ -38,8 +38,8 @@ export const getErrorMessage = (err: unknown) => {
 	return String(err);
 };
 
-const defineError = (statusCode: number, code: string, defaultMessage: string, isOperational = true) => {
-	return (message = defaultMessage) => new AppError(statusCode, code, message, isOperational);
+const defineError = (statusCode: number, code: string, defaultMessage: string) => {
+	return (message = defaultMessage) => new AppError(statusCode, code, message);
 };
 
 export const errors = {
@@ -49,7 +49,7 @@ export const errors = {
 	NOT_FOUND: defineError(404, "NOT_FOUND", "Not Found"),
 	CONFLICT: defineError(409, "CONFLICT", "Conflict"),
 	TOO_MANY_REQUESTS: defineError(429, "TOO_MANY_REQUESTS", "Too Many Requests"),
-	INTERNAL_SERVER_ERROR: defineError(500, "INTERNAL_SERVER_ERROR", "Internal Server Error", false),
+	INTERNAL_SERVER_ERROR: defineError(500, "INTERNAL_SERVER_ERROR", "Internal Server Error"),
 
 	INVALID_TOKEN: defineError(401, "INVALID_TOKEN", "Invalid token"),
 	VALIDATION_ERROR: defineError(400, "VALIDATION_ERROR", "Validation failed"),
@@ -65,3 +65,14 @@ export const tryCatch = async <T>(promise: Promise<T>): Promise<[T | null, Error
 		return [null, error instanceof Error ? error : new Error(String(error))];
 	}
 };
+
+export function asyncHandler(fn: TRequestHandler<any>, errorMessage?: string): RequestHandler {
+	return (req: Request, res: Response, next: NextFunction) => {
+		Promise.resolve(fn(req, res, next)).catch(err => {
+			if (err instanceof ZodError) {
+				return next(errors.VALIDATION_ERROR(getZodErrorMessage(err)));
+			}
+			return next(AppError.from(err, errorMessage));
+		});
+	};
+}
