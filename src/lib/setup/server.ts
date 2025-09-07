@@ -2,6 +2,7 @@ import express, { type Router } from "express";
 import type { Express, Request, Response, NextFunction } from "express";
 import cors, { type CorsOptions } from "cors";
 import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
 import compression from "compression";
 import errorHandler from "@/middlewares/error-handler.middleware.ts";
 import { errors } from "@/lib/utils/error.ts";
@@ -16,6 +17,7 @@ export type TSetupServerOptions = {
 const setupServer = (app: Express, options: TSetupServerOptions) => {
 	app.use(cors(options.corsConfig));
 	app.use(express.json());
+	app.use(mongoSanitize());
 	app.use(helmet());
 	app.use(compression());
 	app.get("/", (req: Request, res: Response) => {
