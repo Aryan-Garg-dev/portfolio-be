@@ -1,12 +1,8 @@
-import mongoose, { Schema, type Document, type Model, type Types } from "mongoose";
+import mongoose, { Schema, type Model } from "mongoose";
 import { BlogStatus } from "@/modules/blog/blog.constants.ts";
 import type { IBlog } from "@/modules/blog/blog.types.ts";
 
-export interface IBlogDocument extends Document<Types.ObjectId>, Omit<IBlog, "id"> {
-	_id: Types.ObjectId;
-}
-
-export const blogSchema = new Schema<IBlogDocument>(
+export const blogSchema = new Schema<IBlog>(
 	{
 		title: { type: String, required: true },
 		description: { type: String, required: true },
@@ -47,6 +43,6 @@ blogSchema.index(
 	}
 ); // search blog by title / description (text-search)
 
-const BlogModel: Model<IBlogDocument> = mongoose.models.blogs || mongoose.model<IBlogDocument>("blogs", blogSchema);
+const BlogModel: Model<IBlog> = mongoose.models.blogs || mongoose.model<IBlog>("blogs", blogSchema);
 
 export default BlogModel;

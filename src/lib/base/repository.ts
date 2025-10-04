@@ -1,12 +1,4 @@
-import mongoose, {
-	type Model,
-	type Document,
-	type ClientSession,
-	type FilterQuery,
-	type UpdateQuery,
-	type Types,
-} from "mongoose";
-import type { TLeanDoc } from "@/common/types";
+import mongoose, { type Model, type ClientSession, type FilterQuery, type UpdateQuery } from "mongoose";
 import startTransaction from "@/lib/utils/transaction.ts";
 
 type TRepositoryFilter<T> = FilterQuery<T>;
@@ -25,28 +17,22 @@ interface IPaginationResult<T> {
 	hasPrev: boolean;
 }
 
-interface IBaseDocument extends Document {
-	_id: Types.ObjectId;
-	createdAt?: Date;
-	updatedAt?: Date;
-}
-
-export interface IBaseRepository<TDoc extends IBaseDocument, TLean = TLeanDoc<TDoc>> {
+export interface IBaseRepository<TDoc> {
 	readonly model: Model<TDoc>;
 
-	create(data: Partial<TDoc>, session?: ClientSession): Promise<TLean>;
+	create(data: Partial<TDoc>, session?: ClientSession): Promise<TDoc>;
 
-	findById(id: string | Types.ObjectId): Promise<TLean | null>;
+	findById(id: string): Promise<TDoc | null>;
 
-	findOne(filter: TRepositoryFilter<TDoc>, session?: ClientSession): Promise<TLean | null>;
+	findOne(filter: TRepositoryFilter<TDoc>, session?: ClientSession): Promise<TDoc | null>;
 
-	find(filter: TRepositoryFilter<TDoc>, session?: ClientSession): Promise<TLean[]>;
+	find(filter: TRepositoryFilter<TDoc>, session?: ClientSession): Promise<TDoc[]>;
 
-	update(id: string | Types.ObjectId, data: UpdateQuery<TDoc>, session?: ClientSession): Promise<TLean | null>;
+	update(id: string, data: UpdateQuery<TDoc>, session?: ClientSession): Promise<TDoc | null>;
 
-	updateOne(filter: TRepositoryFilter<TDoc>, data: UpdateQuery<TDoc>, session?: ClientSession): Promise<TLean | null>;
+	updateOne(filter: TRepositoryFilter<TDoc>, data: UpdateQuery<TDoc>, session?: ClientSession): Promise<TDoc | null>;
 
-	delete(id: string | Types.ObjectId, session?: ClientSession): Promise<TLean | null>;
+	delete(id: string, session?: ClientSession): Promise<TDoc | null>;
 
 	deleteMany(filter: TRepositoryFilter<TDoc>, session?: ClientSession): Promise<number>;
 
@@ -54,20 +40,18 @@ export interface IBaseRepository<TDoc extends IBaseDocument, TLean = TLeanDoc<TD
 		filter: TRepositoryFilter<TDoc>,
 		options?: IPaginationOptions,
 		session?: ClientSession
-	): Promise<IPaginationResult<TLean>>;
+	): Promise<IPaginationResult<TDoc>>;
 
 	count(filter: TRepositoryFilter<TDoc>, session?: ClientSession): Promise<number>;
 
 	exists(filter: TRepositoryFilter<TDoc>, session?: ClientSession): Promise<boolean>;
 
-	toDTO(doc: TLean | null): Record<string, any> | null;
+	upsert(filter: TRepositoryFilter<TDoc>, data: UpdateQuery<TDoc>, session?: ClientSession): Promise<TDoc>;
 
 	transaction<K>(fn: (session: ClientSession) => Promise<K>): Promise<K>;
 }
 
-export class BaseRepository<TDoc extends IBaseDocument, TLean = TLeanDoc<TDoc>>
-	implements IBaseRepository<TDoc, TLean>
-{
+export class BaseRepository<TDoc> implements IBaseRepository<TDoc> {
 	readonly model: Model<TDoc>;
 	private readonly _maxPaginationLimit: number = 100;
 
@@ -76,58 +60,58 @@ export class BaseRepository<TDoc extends IBaseDocument, TLean = TLeanDoc<TDoc>>
 		if (maxPagination) this._maxPaginationLimit = maxPagination;
 	}
 
-	async create(data: Partial<TDoc>, session?: ClientSession): Promise<TLean> {
+	async create(data: Partial<TDoc>, session?: ClientSession): Promise<TDoc> {
 		const docs = await this.model.create([data], { session });
 		const doc = docs[0];
 		if (!doc) {
 			throw new Error("Failed to create document");
 		}
-		return doc.toObject({ virtuals: false, versionKey: false }) as TLean;
+		return doc.toJSON() as TDoc;
 	}
 
-	async findById(id: string | Types.ObjectId): Promise<TLean | null> {
+	async findById(id: string): Promise<TDoc | null> {
 		if (!mongoose.isValidObjectId(id)) {
 			return null;
 		}
-		return this.model.findById(id).lean<TLean>().exec();
+		return this.model.findById(id).lean<TDoc>().exec();
 	}
 
-	async findOne(filter: TRepositoryFilter<TDoc>, session?: ClientSession): Promise<TLean | null> {
+	async findOne(filter: TRepositoryFilter<TDoc>, session?: ClientSession): Promise<TDoc | null> {
 		return this.model
 			.findOne(filter)
-			.lean<TLean>()
+			.lean<TDoc>()
 			.session(session || null)
 			.exec();
 	}
 
-	async find(filter: TRepositoryFilter<TDoc>, session?: ClientSession): Promise<TLean[]> {
+	async find(filter: TRepositoryFilter<TDoc>, session?: ClientSession): Promise<TDoc[]> {
 		return this.model
 			.find(filter)
-			.lean<TLean[]>()
+			.lean<TDoc[]>()
 			.session(session || null)
 			.exec();
 	}
 
-	async update(id: string | Types.ObjectId, data: UpdateQuery<TDoc>, session?: ClientSession): Promise<TLean | null> {
+	async update(id: string, data: UpdateQuery<TDoc>, session?: ClientSession): Promise<TDoc | null> {
 		if (!mongoose.isValidObjectId(id)) {
 			return null;
 		}
-		return this.model.findByIdAndUpdate(id, data, { new: true, session }).lean<TLean>().exec();
+		return this.model.findByIdAndUpdate(id, data, { new: true, session }).lean<TDoc>().exec();
 	}
 
 	async updateOne(
 		filter: TRepositoryFilter<TDoc>,
 		data: UpdateQuery<TDoc>,
 		session?: ClientSession
-	): Promise<TLean | null> {
-		return this.model.findOneAndUpdate(filter, data, { new: true, session }).lean<TLean>().exec();
+	): Promise<TDoc | null> {
+		return this.model.findOneAndUpdate(filter, data, { new: true, session }).lean<TDoc>().exec();
 	}
 
-	async delete(id: string | Types.ObjectId, session?: ClientSession): Promise<TLean | null> {
+	async delete(id: string, session?: ClientSession): Promise<TDoc | null> {
 		if (!mongoose.isValidObjectId(id)) {
 			return null;
 		}
-		return this.model.findByIdAndDelete(id, { session }).lean<TLean>().exec();
+		return this.model.findByIdAndDelete(id, { session }).lean<TDoc>().exec();
 	}
 
 	async deleteMany(filter: TRepositoryFilter<TDoc>, session?: ClientSession): Promise<number> {
@@ -142,10 +126,9 @@ export class BaseRepository<TDoc extends IBaseDocument, TLean = TLeanDoc<TDoc>>
 		filter: TRepositoryFilter<TDoc>,
 		{ page = 1, limit = 10 }: IPaginationOptions = {},
 		session?: ClientSession
-	): Promise<IPaginationResult<TLean>> {
-		// Validate pagination parameters
+	): Promise<IPaginationResult<TDoc>> {
 		const validatedPage = Math.max(1, Math.floor(page));
-		const validatedLimit = Math.min(Math.max(1, Math.floor(limit)), this._maxPaginationLimit); // Cap at 100
+		const validatedLimit = Math.min(Math.max(1, Math.floor(limit)), this._maxPaginationLimit);
 
 		const skip = (validatedPage - 1) * validatedLimit;
 
@@ -154,7 +137,7 @@ export class BaseRepository<TDoc extends IBaseDocument, TLean = TLeanDoc<TDoc>>
 				.find(filter)
 				.skip(skip)
 				.limit(validatedLimit)
-				.lean<TLean[]>()
+				.lean<TDoc[]>()
 				.session(session || null)
 				.exec(),
 			this.model
@@ -194,29 +177,11 @@ export class BaseRepository<TDoc extends IBaseDocument, TLean = TLeanDoc<TDoc>>
 		return doc !== null;
 	}
 
-	toDTO(doc: TLean | null): Record<string, any> | null {
-		if (!doc) return null;
-
-		// Create a copy and remove Mongoose-specific fields
-		const obj = { ...doc } as any;
-		delete obj.__v;
-		delete obj.$__;
-		delete obj.$isNew;
-
-		// Convert ObjectIds to strings for API responses
-		if (obj._id && typeof obj._id === "object" && "toString" in obj._id) {
-			obj.id = obj._id.toString();
-			delete obj._id;
-		}
-
-		return obj;
-	}
-
 	async transaction<K>(fn: (session: ClientSession) => Promise<K>): Promise<K> {
 		return startTransaction(fn);
 	}
 
-	async upsert(filter: TRepositoryFilter<TDoc>, data: UpdateQuery<TDoc>, session?: ClientSession): Promise<TLean> {
+	async upsert(filter: TRepositoryFilter<TDoc>, data: UpdateQuery<TDoc>, session?: ClientSession): Promise<TDoc> {
 		const result = await this.model
 			.findOneAndUpdate(filter, data, {
 				new: true,
@@ -224,22 +189,24 @@ export class BaseRepository<TDoc extends IBaseDocument, TLean = TLeanDoc<TDoc>>
 				session,
 				setDefaultsOnInsert: true,
 			})
-			.lean<TLean>()
+			.lean<TDoc>()
 			.exec();
 
 		if (!result) {
 			throw new Error("Upsert operation failed unexpectedly");
 		}
-		return result; // upsert: true guarantees a result
+		return result;
 	}
 }
 
 // Example usage with a specific model:
 /*
-interface IUser extends IBaseDocument {
+interface IUser {
   name: string;
   email: string;
   age?: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const UserSchema = new mongoose.Schema<IUser>({
@@ -256,12 +223,12 @@ class UserRepository extends BaseRepository<IUser> {
   }
 
   // Add user-specific methods here
-  async findByEmail(email: string): Promise<LeanDocument<IUser> | null> {
+  async findByEmail(email: string): Promise<IUser | null> {
     return this.findOne({ email });
   }
 
   // Override toDTO for user-specific transformations
-  toDTO(doc: LeanDocument<IUser> | null): Record<string, any> | null {
+  toDTO(doc: IUser | null): Record<string, any> | null {
     const dto = super.toDTO(doc);
     if (!dto) return null;
 
