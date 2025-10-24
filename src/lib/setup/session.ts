@@ -1,10 +1,11 @@
-import type { Express } from "express";
 import { RedisStore } from "connect-redis";
 import env from "@/config/env.ts";
 import session from "express-session";
 import cache from "@/lib/cache";
+import type { TSetupServer } from "@/common/types";
+import logger from "@/lib/setup/logger.ts";
 
-const setupSession = (app: Express) => {
+const setupSession: TSetupServer = (app, setup) => {
 	const redisStore = new RedisStore({
 		client: cache.client,
 		prefix: env.SESSION_PREFIX,
@@ -26,6 +27,8 @@ const setupSession = (app: Express) => {
 			},
 		})
 	);
+
+	setup?.(app);
 };
 
 export default setupSession;

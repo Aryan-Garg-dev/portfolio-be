@@ -25,6 +25,7 @@
 		"experimentalDecorators": true,
 
 		"types": ["express", "bun-types"],
+		"typeRoots": ["./node_modules/@types", "./src/common/types"],
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["src/*"]

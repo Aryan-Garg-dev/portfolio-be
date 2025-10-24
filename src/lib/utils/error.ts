@@ -44,15 +44,10 @@ const defineError = (statusCode: number, code: string, defaultMessage: string) =
 
 export const errors = {
 	BAD_REQUEST: defineError(400, "BAD_REQUEST", "Bad Request"),
-	UNAUTHORIZED: defineError(401, "UNAUTHORIZED", "Unauthorized"),
-	FORBIDDEN: defineError(403, "FORBIDDEN", "Forbidden"),
+	UNAUTHORIZED: defineError(401, "UNAUTHORIZED", "Invalid token"),
 	NOT_FOUND: defineError(404, "NOT_FOUND", "Not Found"),
-	CONFLICT: defineError(409, "CONFLICT", "Conflict"),
 	TOO_MANY_REQUESTS: defineError(429, "TOO_MANY_REQUESTS", "Too Many Requests"),
 	INTERNAL_SERVER_ERROR: defineError(500, "INTERNAL_SERVER_ERROR", "Internal Server Error"),
-
-	INVALID_TOKEN: defineError(401, "INVALID_TOKEN", "Invalid token"),
-	VALIDATION_ERROR: defineError(400, "VALIDATION_ERROR", "Validation failed"),
 };
 
 export type TErrorCode = keyof typeof errors;
@@ -70,7 +65,7 @@ export function asyncHandler(fn: TRequestHandler<any>, errorMessage?: string): R
 	return (req: Request, res: Response, next: NextFunction) => {
 		Promise.resolve(fn(req, res, next)).catch(err => {
 			if (err instanceof ZodError) {
-				return next(errors.VALIDATION_ERROR(getZodErrorMessage(err)));
+				return next(errors.BAD_REQUEST(getZodErrorMessage(err)));
 			}
 			return next(AppError.from(err, errorMessage));
 		});

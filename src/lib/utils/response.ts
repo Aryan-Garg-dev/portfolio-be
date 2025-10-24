@@ -60,34 +60,3 @@ export function sendResponse<T>(res: Response, response: TResponse<T>) {
 		code: response.code,
 	});
 }
-
-export const response = {
-	ok: <T>(data: T, message = "OK", status = 200): TResponse<T> => ({
-		success: true,
-		status,
-		message,
-		data,
-	}),
-
-	created: <T>(data: T, message = "Created"): TResponse<T> => ({
-		success: true,
-		status: 201,
-		message,
-		data,
-	}),
-
-	paginated: <T>(data: T[], meta: TPaginatedMeta, message = "OK"): TPaginatedResponse<T> => ({
-		success: true,
-		status: 200,
-		message,
-		data,
-		meta,
-	}),
-
-	error: (error: string, status = 500, code = "INTERNAL_SERVER_ERROR"): TResponse<null> => ({
-		success: false,
-		status,
-		error,
-		code,
-	}),
-};

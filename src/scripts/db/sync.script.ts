@@ -1,4 +1,4 @@
-import connectDB from "@/lib/setup/db.ts";
+import { connectDB } from "@/lib/setup/db.ts";
 import logger from "@/lib/logger/index.ts";
 import type { Mongoose } from "mongoose";
 import { tryCatch } from "@/lib/utils/error.ts";

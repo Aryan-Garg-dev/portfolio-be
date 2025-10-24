@@ -11,12 +11,14 @@ class RedisCache implements IRedisCache {
 		this._client = createClient({ url: env.REDIS_URL });
 	}
 
-	async connect(): Promise<void> {
+	async connect(): Promise<boolean> {
 		try {
 			await this._client.connect();
 			logger.info("Connected to redis!");
+			return true;
 		} catch (err) {
-			throw new Error(`Redis connection failed: ${JSON.stringify(err, null, 2)}`);
+			logger.error(`Redis connection failed: ${JSON.stringify(err, null, 2)}`);
+			return false;
 		}
 	}
 

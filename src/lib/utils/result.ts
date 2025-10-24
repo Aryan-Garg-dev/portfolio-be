@@ -25,11 +25,11 @@ export class Result<T> {
 		return !this._success;
 	}
 
-	getValue(): T | undefined {
+	get value(): T | undefined {
 		return this._value;
 	}
 
-	getError(): Error | undefined {
+	get error(): Error | undefined {
 		return this._error;
 	}
 }

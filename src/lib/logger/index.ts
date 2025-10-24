@@ -1,6 +1,5 @@
-import WinstonLogger from "@/lib/logger/winston.impl.ts";
-import type { ILogger } from "@/lib/logger/logger.interface.ts";
+import { PinoLogger } from "./pino.impl.ts";
 
-const logger: ILogger = WinstonLogger.instance;
+const logger = new PinoLogger();
 
 export default logger;

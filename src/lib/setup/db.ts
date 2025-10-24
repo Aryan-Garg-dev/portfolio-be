@@ -1,12 +1,17 @@
 import mongoose from "mongoose";
 import env from "@/config/env.ts";
 import logger from "@/lib/logger";
+import mongoSanitize from "express-mongo-sanitize";
+import type { TSetupServer } from "@/common/types";
 
-const connectDB = async () => {
+let dbInstance: mongoose.Mongoose | undefined;
+
+export const connectDB = async (): Promise<mongoose.Mongoose> => {
+	if (dbInstance) return dbInstance;
 	try {
 		logger.info("Connecting to DB...");
 		mongoose.set("autoIndex", env.NODE_ENV !== "production");
-		const dbInstance = await mongoose.connect(env.DB_URL);
+		dbInstance = await mongoose.connect(env.DB_URL);
 		logger.info(`Successfully connected to database`);
 		logger.info(`DB-NAME: ${dbInstance.connection.name}`);
 		return dbInstance;
@@ -16,4 +21,10 @@ const connectDB = async () => {
 	}
 };
 
-export default connectDB;
+const setupDB: TSetupServer = async (app, setup) => {
+	await connectDB();
+	app.use(mongoSanitize());
+	setup?.(app);
+};
+
+export default setupDB;

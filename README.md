@@ -1,9 +1,14 @@
-
-
+### TODO
+- powerful middlewares (protect, telemetry)
+- auto docs
+- mailer, authentication
+- abstractions for [ websocket, queue ]
+- event emitter
 
 ### Improvements
-Replaced "express-async-error" with my custom "asyncHandler" and integrated it with my "createController"
-Created "cacheHeaders" middleware for defining optimal caching headers easily. 
+Replaced "express-async-error" with my custom "asyncHandler" and integrated it with my "createController"   
+Created "cacheHeaders" middleware for defining optimal caching headers easily.    
+Introduced new function error handling class with the "Result Pattern" 
 
 
 ### Theory for *cacheHeaders* Middleware

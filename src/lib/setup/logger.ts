@@ -1,17 +1,9 @@
-import morgan, { type StreamOptions } from "morgan";
-import type { Express } from "express";
-import env from "@/config/env.ts";
-import logger from "@/lib/logger";
+import type { TSetupServer } from "@/common/types";
+import { loggerMiddleware } from "@/middlewares/logger.middleware.ts";
 
-const LOG_FORMAT = env.NODE_ENV === "production" ? "combined" : "dev";
-const stream: StreamOptions = {
-	write(message: string) {
-		logger.http(message.trim());
-	},
-};
-
-const setupLogger = (app: Express) => {
-	app.use(morgan(LOG_FORMAT, { stream }));
+const setupLogger: TSetupServer = (app, setup) => {
+	app.use(loggerMiddleware);
+	setup?.(app);
 };
 
 export default setupLogger;
